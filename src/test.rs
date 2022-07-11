@@ -3,6 +3,8 @@ use crate::prelude::{CameraEvent, CameraManager, PixelFormat, StreamRole};
 #[cfg(feature = "image")]
 #[test]
 fn test_camera() {
+  // Wait to ensure we can lock the camera (when running many tests back-to-back).
+  std::thread::sleep(std::time::Duration::from_secs(5));
   let cm = CameraManager::new().unwrap();
   println!("cm: {cm:?}");
   let mut cam = cm.get_camera_by_name(&cm.get_camera_names()[0]).unwrap();

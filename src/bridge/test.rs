@@ -5,6 +5,8 @@ use std::collections::HashMap;
 
 #[test]
 fn test_unsafe_camera() {
+  // Wait to ensure we can lock the camera (when running many tests back-to-back).
+  std::thread::sleep(std::time::Duration::from_secs(5));
   let mut cm = unsafe { ffi::make_camera_manager() };
   unsafe { cm.get_mut().start() }.unwrap();
   let camera_ids = unsafe { cm.get().get_camera_ids() };
