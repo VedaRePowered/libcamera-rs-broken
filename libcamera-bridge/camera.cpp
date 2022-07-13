@@ -2,8 +2,24 @@
 
 #include "libcamera-rs/src/bridge.rs.h"
 
+#include <iostream>
+#include <thread>
+
+#include <stdexcept>
 Camera::Camera(std::shared_ptr<libcamera::Camera> inner_)
     : inner{std::move(inner_)} {
+  if (!this->inner) {
+    std::cerr
+        << " - AAAAAAAaaaaaahhhhhhhHAAAAAAAAAAAHaAAAAAAAAAHaAAAAAHhhhhhAAAAA"
+           "AhhhhhhhhhhhhhHHHhhhHHHH"
+        << std::endl;
+    throw std::invalid_argument("PAIN");
+  }
+  VALIDATE_POINTERS()
+
+  std::cerr << " - Camera::Camera(uc=" << this->inner.use_count() << ") -> "
+            << static_cast<const void *>(this) << " on "
+            << std::this_thread::get_id() << std::endl;
   this->inner->bufferCompleted.connect(
       this, [&](libcamera::Request *req, libcamera::FrameBuffer *fb) {
         this->message_mutex.lock();
@@ -26,6 +42,8 @@ Camera::Camera(std::shared_ptr<libcamera::Camera> inner_)
 }
 
 Camera::~Camera() {
+  std::cerr << " - Camera::~Camera(" << static_cast<const void *>(this) << ")"
+            << " on " << std::this_thread::get_id() << std::endl;
   this->inner->bufferCompleted.disconnect();
   this->inner->requestCompleted.disconnect();
 }
@@ -33,11 +51,17 @@ Camera::~Camera() {
 std::shared_ptr<libcamera::Camera> Camera::into_shared() {
   VALIDATE_POINTERS()
 
+  std::cerr << " - Camera::into_shared(" << static_cast<const void *>(this)
+            << ")"
+            << " on " << std::this_thread::get_id() << std::endl;
   return this->inner;
 }
 
 void Camera::acquire() {
   VALIDATE_POINTERS()
+
+  std::cerr << " - Camera::acquire(" << static_cast<const void *>(this) << ")"
+            << " on " << std::this_thread::get_id() << std::endl;
 
   int ret = this->inner->acquire();
   if (ret < 0) {
@@ -48,6 +72,9 @@ void Camera::acquire() {
 void Camera::release() {
   VALIDATE_POINTERS()
 
+  std::cerr << " - Camera::release(" << static_cast<const void *>(this) << ")"
+            << " on " << std::this_thread::get_id() << std::endl;
+
   int ret = this->inner->release();
   if (ret < 0) {
     throw error_from_code(-ret);
@@ -57,6 +84,10 @@ void Camera::release() {
 BindCameraConfiguration
 Camera::generate_configuration(rust::Slice<const libcamera::StreamRole> roles) {
   VALIDATE_POINTERS()
+
+  std::cerr << " - Camera::generate_configuration("
+            << static_cast<const void *>(this) << ")"
+            << " on " << std::this_thread::get_id() << std::endl;
 
   std::vector<libcamera::StreamRole> roles_vec;
   for (libcamera::StreamRole role : roles) {

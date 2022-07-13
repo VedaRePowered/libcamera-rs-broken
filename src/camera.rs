@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use std::fmt::{self, Debug};
 use std::marker::PhantomData;
-use std::sync::mpsc::{self, Sender};
+use std::sync::mpsc::{self, SyncSender};
 use std::sync::{Arc, Mutex, RwLock};
 use std::thread;
 use std::time::Instant;
@@ -43,7 +43,7 @@ impl CameraManager {
     unsafe { self.inner.read().unwrap().get().get_camera_ids() }
   }
   /// Get a camera with a given name
-  pub fn get_camera_by_name(&self, name: &str) -> Result<Camera<'_>> {
+  pub fn get_camera_by_name<'a>(&'a self, name: &str) -> Result<Camera<'a>> {
     let mut cam = unsafe { self.inner.write().unwrap().get_mut().get_camera_by_id(name) }?;
     unsafe { cam.get_mut().acquire() }?;
     let allocator = unsafe { ffi::make_frame_buffer_allocator(cam.get_mut()) };
@@ -345,7 +345,7 @@ impl Drop for InnerCamera {
 pub struct Camera<'a> {
   _camera_manager: PhantomData<&'a CameraManager>,
   inner: Arc<Mutex<InnerCamera>>,
-  _drop_detector: Sender<()>,
+  _drop_detector: SyncSender<()>,
   // A shim that internally stores a reference (Arc) to our innercamera.
   camera_config: Option<CameraConfig>,
   // This doesn't maintain a reference to libcamera and can therefore be stored here instead of inside InnerCamera.
@@ -358,7 +358,7 @@ impl Camera<'_> {
     controls: CameraControls,
     manager: PhantomData<&'_ CameraManager>,
   ) -> Camera<'_> {
-    let (tx, rx) = mpsc::channel();
+    let (tx, rx) = mpsc::sync_channel(0);
     let inner = Arc::new(Mutex::new(inner));
     // This thread's sole purpose is to drop InnerCamera even when Camera's destructor doesn't run.
     {
@@ -389,12 +389,12 @@ impl Camera<'_> {
   pub fn apply_config(&mut self) -> Result<ConfigStatus> {
     self.inner.lock().unwrap().apply_config()
   }
-  /// Mutably borrow this camera's config.
-  pub fn get_config(&mut self) -> Option<&CameraConfig> {
+  /// Borrow this camera's config.
+  pub fn get_config(&self) -> Option<&CameraConfig> {
     self.camera_config.as_ref()
   }
-  /// Borrow the camera's controls mutably
-  pub fn get_controls(&mut self) -> &CameraControls {
+  /// Borrow the camera's controls
+  pub fn get_controls(&self) -> &CameraControls {
     &self.controls
   }
   /// Borrow the camera's controls mutably

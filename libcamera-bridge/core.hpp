@@ -3,6 +3,8 @@
 
 #pragma once
 
+#undef _GLIBCXX_HAVE_ATOMIC_LOCK_POLICY
+
 #include <cstring>
 #include <mutex>
 #include <queue>
@@ -66,6 +68,7 @@ private:
 public:
   explicit CameraManager(std::unique_ptr<libcamera::CameraManager> inner_)
       : inner{std::move(inner_)} {}
+  ~CameraManager();
 
   void start();
   void stop();

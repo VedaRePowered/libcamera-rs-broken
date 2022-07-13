@@ -2,7 +2,13 @@
 
 #include "libcamera-rs/src/bridge.rs.h"
 
+#include <iostream>
+#include <thread>
+
 BindFrameBufferAllocator make_frame_buffer_allocator(Camera &camera) {
+  std::cerr << " - make_frame_buffer_allocator("
+            << static_cast<const void *>(&camera) << ")"
+            << " on " << std::this_thread::get_id() << std::endl;
   BindFrameBufferAllocator allocator{
       .inner = std::make_unique<FrameBufferAllocator>(
           std::make_unique<libcamera::FrameBufferAllocator>(
