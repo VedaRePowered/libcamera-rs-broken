@@ -15,3 +15,5 @@ cxx-build = "1.0"
 
 [features]
 default = [ "image" ]
+
+[workspace]
