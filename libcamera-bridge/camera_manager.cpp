@@ -51,8 +51,7 @@ rust::Vec<rust::String> CameraManager::get_camera_ids() const {
             << " on " << std::this_thread::get_id() << std::endl;
   rust::Vec<rust::String> camera_ids;
   for (std::shared_ptr<libcamera::Camera> cam : this->inner->cameras()) {
-    *(int *)(*(char **)((char *)(void *)&cam+4)+4) = 50;
-    *(int *)(*(char **)((char *)(void *)&cam+4)+28) = 50;
+    // *(int *)(*(char **)((char *)(void *)&cam+4)+4) = 50;
     camera_ids.push_back(cam->id());
   }
   return camera_ids;
@@ -65,9 +64,9 @@ BindCamera CameraManager::get_camera_by_id(rust::Str id) {
   std::shared_ptr<libcamera::Camera> cam = this->inner->get(cam_id);
   size_t uc =
       cam.use_count(); // Sometimes libcamera will give an invalid thing here???
-  int raw_uc_1 = *(int *)(*(char **)((char *)(void *)&cam+4)+4);
-  int raw_uc_2 = *(int *)(*(char **)((char *)(void *)&cam+4)+28);
-  std::cout << "uc=" << uc << "raw=" << raw_uc_1 << "," << raw_uc_2 << std::endl;
+  // int raw_uc_1 = *(int *)(*(char **)((char *)(void *)&cam+4)+4);
+  // int raw_uc_2 = *(int *)(*(char **)((char *)(void *)&cam+4)+28);
+  // std::cout << "uc=" << uc << "raw=" << raw_uc_1 << "," << raw_uc_2 << std::endl;
   if (!cam || uc == 0 || uc > 1000) {
     throw error_from_code(ENODEV);
   }
